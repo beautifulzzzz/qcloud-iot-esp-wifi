@@ -5,8 +5,8 @@
 
 PROJECT_NAME := esp8266-qcloud-iot
 
-IDF_DIR := ESP8266_RTOS_SDK
-export IDF_PATH ?= $(PWD)/$(IDF_DIR)
+# IDF_DIR := ESP8266_RTOS_SDK
+# export IDF_PATH ?= $(PWD)/$(IDF_DIR)
 
 SDKCONFIG_DEFAULTS := $(PWD)/sdkconfig.qcloud
 
