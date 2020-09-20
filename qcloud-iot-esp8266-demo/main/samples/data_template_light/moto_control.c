@@ -54,10 +54,18 @@ const uint32_t pin_num[3] = {
 
 // dutys table, (duty/PERIOD)*depth
 uint32_t duties[3] = {
-    1250,
-    1500,
+    1250,//down_up
+    1500,//left_right
     1600
 };
+
+const int left = 1200;//600
+const int right = 1800;
+const int down = 900;//350
+const int up = 1250;
+
+int left_right[5] = {1200,1400,1600,1800,1500};
+int down_up[5] = {1250,1134,1017,900,1250};
 
 // phase table, (phase/180)*depth
 int16_t phase[3] = {
@@ -66,8 +74,6 @@ int16_t phase[3] = {
     0
 };
 
-int left_right_start = 0;//-1:left 0:stop  1:right
-int down_up_start = 0;//-1:down  0:stop 1:right
 void app_control_run(void){
     gpio_config_t io_conf;
     //disable interrupt
@@ -89,58 +95,6 @@ void app_control_run(void){
     pwm_init(PWM_PERIOD, duties, 3, pin_num);
     pwm_set_phases(phase);
     pwm_start();
-    
-    const int left = 1200;
-    const int right = 1800;
-    const int down = 900;//400-2600
-    const int up = 1250;
-
-    int cur_left_right = 1500;
-    int cur_down_up = 1250;
-    //duties[0] = 1200;
-    //duties[1] = 1550;
-    while(1<2){
-        //duties[0]+=1;
-        //if(duties[0] >= 1400)duties[0] = 1200;
-        //duties[1]+=10;
-        //if(duties[1] >= 1900)duties[1] = 1100;
-        //Log_d("%d %d",duties[0],duties[1]);
-        //pwm_set_duty(0,duties[0]);
-        //pwm_set_duty(1,duties[1]);
-        //pwm_start();
-
-        if(left_right_start!=0){
-            cur_left_right+=(left_right_start*7);
-            if(cur_left_right < left){
-                cur_left_right = left;
-                left_right_start = 0;
-            }else if(cur_left_right > right){
-                cur_left_right = right;
-                left_right_start = 0;
-            }
-            duties[1] = cur_left_right;           
-            pwm_set_duty(1,duties[1]);
-            pwm_start();
-            Log_d("mv left right state:%d [%d]",left_right_start,cur_left_right);
-        }
-
-        if(down_up_start!=0){
-            cur_down_up+=(down_up_start*7);
-            if(cur_down_up < down){
-                cur_down_up = down;
-                down_up_start = 0;
-            }else if(cur_down_up > up){
-                cur_down_up = up;
-                down_up_start = 0;
-            }
-            duties[0] = cur_down_up;           
-            pwm_set_duty(0,duties[0]);
-            pwm_start();
-            Log_d("mv down_up state:%d [%d]",down_up_start,cur_down_up);
-        }
-
-        vTaskDelay(10 / portTICK_RATE_MS);
-    }
 }
 
 char get_value(const char *jsonRoot){
@@ -152,26 +106,23 @@ char get_value(const char *jsonRoot){
         cJSON *pValue =  cJSON_GetObjectItem(pParams, "doumiao");
         if(pValue != NULL){
             Log_d("dp: doumiao:%d",pValue->valueint);
-            switch(pValue->valueint){
-                case 0:
-                    down_up_start = 1;
-                    break;//up
-                case 1:
-                    down_up_start = -1;
-                    break;//down
-                case 2:
-                    left_right_start = -1;
-                    break;//left
-                case 3:
-                    left_right_start = 1;
-                    break;//right
-                case 4:
-                    down_up_start = 0;
-                    left_right_start = 0;
-                    break;
-                default:break;
+       
+            int x = left_right[4];
+            int y = down_up[4];
+            if(pValue->valueint > 0  && pValue->valueint <17){
+                pValue->valueint--;
+                x = left_right[pValue->valueint%4];
+                y = down_up[pValue->valueint/4];
             }
+            
+            Log_d("move to:x=%d y=%d",x,y);
+            duties[0] = y;           
+            pwm_set_duty(0,duties[0]);
+            duties[1] = x;           
+            pwm_set_duty(1,duties[1]);
+            pwm_start();
         }
+
         pValue =  cJSON_GetObjectItem(pParams, "onoff");
         if(pValue != NULL){
             Log_d("dp: onoff:%d",pValue->valueint);
