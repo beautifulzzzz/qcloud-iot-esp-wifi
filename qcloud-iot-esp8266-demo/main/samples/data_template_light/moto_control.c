@@ -34,8 +34,8 @@
 //////////////////////////////////////////////////////////////////////
 //PWM
 //////////////////////////////////////////////////////////////////////
-#define PWM_1_OUT_IO_NUM    14
-#define PWM_2_OUT_IO_NUM    12
+#define PWM_1_OUT_IO_NUM    14 //D5
+#define PWM_2_OUT_IO_NUM    12 //D6
 #define PWM_3_OUT_IO_NUM    2
 #define LED_IO_NUM          13 //D7 
 #define GPIO_OUTPUT_PIN_SEL (1ULL<<LED_IO_NUM)
@@ -54,8 +54,8 @@ const uint32_t pin_num[3] = {
 
 // dutys table, (duty/PERIOD)*depth
 uint32_t duties[3] = {
-    1400,
-    1300,
+    1250,
+    1500,
     1600
 };
 
@@ -82,22 +82,35 @@ void app_control_run(void){
     io_conf.pull_up_en = 0;
     //configure GPIO with the given settings
     gpio_config(&io_conf);
+    
+    gpio_set_level(LED_IO_NUM, 1);
 
 
     pwm_init(PWM_PERIOD, duties, 3, pin_num);
     pwm_set_phases(phase);
     pwm_start();
     
-    const int left = 1300;
-    const int right = 2000;
-    const int down = 1400;
-    const int up = 1900;
+    const int left = 1200;
+    const int right = 1800;
+    const int down = 900;//400-2600
+    const int up = 1250;
 
-    int cur_left_right = 1300;
-    int cur_down_up = 1400;
+    int cur_left_right = 1500;
+    int cur_down_up = 1250;
+    //duties[0] = 1200;
+    //duties[1] = 1550;
     while(1<2){
+        //duties[0]+=1;
+        //if(duties[0] >= 1400)duties[0] = 1200;
+        //duties[1]+=10;
+        //if(duties[1] >= 1900)duties[1] = 1100;
+        //Log_d("%d %d",duties[0],duties[1]);
+        //pwm_set_duty(0,duties[0]);
+        //pwm_set_duty(1,duties[1]);
+        //pwm_start();
+
         if(left_right_start!=0){
-            cur_left_right+=(left_right_start);
+            cur_left_right+=(left_right_start*7);
             if(cur_left_right < left){
                 cur_left_right = left;
                 left_right_start = 0;
@@ -112,14 +125,13 @@ void app_control_run(void){
         }
 
         if(down_up_start!=0){
-            cur_down_up+=(down_up_start);
+            cur_down_up+=(down_up_start*7);
             if(cur_down_up < down){
                 cur_down_up = down;
                 down_up_start = 0;
             }else if(cur_down_up > up){
                 cur_down_up = up;
                 down_up_start = 0;
-             
             }
             duties[0] = cur_down_up;           
             pwm_set_duty(0,duties[0]);
@@ -169,7 +181,9 @@ char get_value(const char *jsonRoot){
                 gpio_set_level(LED_IO_NUM, 0);
             }
         }
+        cJSON_Delete(pParams); 
     }    
+
     return 1;
 }
 

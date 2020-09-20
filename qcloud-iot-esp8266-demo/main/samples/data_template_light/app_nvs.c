@@ -28,7 +28,7 @@
 #include "cJSON.h"
 #include "nvs.h"
 
-#if 1
+#if 0
 esp_err_t app_nvs_init(void){
    return ESP_OK;
 }

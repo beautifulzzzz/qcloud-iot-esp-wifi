@@ -32,8 +32,7 @@
 
 
 /* normal WiFi STA mode init and connection ops */
-//#ifndef CONFIG_WIFI_CONFIG_ENABLED
-#if 1
+#ifndef CONFIG_WIFI_CONFIG_ENABLED
 
 /* WiFi router SSID  */
 #define TEST_WIFI_SSID                 CONFIG_DEMO_WIFI_SSID
@@ -76,8 +75,7 @@ static void wifi_connection(void)
         },
     };
 
-    //extern esp_err_t app_nvs_get_ssid_password(uint8_t *_ssid, uint8_t *_password);
-    //app_nvs_get_ssid_password(&wifi_config.sta.ssid, &wifi_config.sta.password);
+    app_nvs_get_ssid_password(&wifi_config.sta.ssid, &wifi_config.sta.password);
     Log_i("Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
 
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
@@ -167,7 +165,7 @@ void qcloud_demo_task(void* parm)
     Log_i("qcloud_demo_task start");
     
 
-    #if 0 //CONFIG_WIFI_CONFIG_ENABLED
+    #if CONFIG_WIFI_CONFIG_ENABLED
     /* to use WiFi config and device binding with Wechat mini program */
     int wifi_config_state;
     //int ret = start_softAP("ESP8266-SAP", "12345678", 0);
@@ -208,28 +206,6 @@ void qcloud_demo_task(void* parm)
         #endif
     } else {
         Log_e("WiFi is not ready, please check configuration");
-        /* to use WiFi config and device binding with Wechat mini program */
-        int wifi_config_state;
-        //int ret = start_softAP("ESP8266-SAP", "12345678", 0);
-        int ret = start_smartconfig();
-        if (ret) {
-            Log_e("start wifi config failed: %d", ret);
-        } else {
-            /* max waiting: 150 * 2000ms */
-            int wait_cnt = 150;
-            do {
-                Log_d("waiting for wifi config result...");
-                HAL_SleepMs(2000);            
-                wifi_config_state = query_wifi_config_state();
-            } while (wifi_config_state == WIFI_CONFIG_GOING_ON && wait_cnt--);
-        }
-
-    wifi_connected = is_wifi_config_successful();
-    if (!wifi_connected) {
-        Log_e("wifi config failed!");
-        // setup a softAP to upload log to mini program
-        start_log_softAP();
-    }
     }
 
     Log_w("qcloud_demo_task quit");
@@ -295,6 +271,7 @@ void app_main()
 
     xTaskCreate(qcloud_demo_task, "qcloud_demo_task", 8196, NULL, 4, NULL);
     xTaskCreate(app_control_task, "app_control_task", 8196, NULL, 4, NULL);
-    xTaskCreate(app_nvs_task, "app_nvs_task", 2048, NULL, 3, NULL);
+    //xTaskCreate(app_nvs_task, "app_nvs_task", 2048, NULL, 3, NULL);
 }
+
 
