@@ -31,6 +31,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+
+
 #define MQTT_TIMEOUT_VALUE_MS (10 * 1000)
 
 static DeviceInfo sg_devInfo;
@@ -732,3 +734,6 @@ exit:
 
     return rc;
 }
+
+
+

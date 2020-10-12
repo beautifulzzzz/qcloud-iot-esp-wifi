@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Tencent Cloud. All rights reserved.
+* Copyright (c) 2020 Tencent Cloud. All rights reserved.
 
  * Licensed under the MIT License (the "License"); you may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
@@ -87,24 +87,24 @@ static esp_err_t _esp_event_handler(void* ctx, system_event_t* event)
 
     switch (event->event_id) {
         case SYSTEM_EVENT_STA_START:
-            Log_i("SYSTEM_EVENT_STA_START");
-            wifi_connection();
-            break;
+        Log_i("SYSTEM_EVENT_STA_START");
+        wifi_connection();
+        break;
 
         case SYSTEM_EVENT_STA_GOT_IP:
-            Log_i("Got IPv4[%s]", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
-            xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
+        Log_i("Got IPv4[%s]", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+        xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
 
-            break;
+        break;
 
         case SYSTEM_EVENT_STA_DISCONNECTED:
-            Log_i("SYSTEM_EVENT_STA_DISCONNECTED");
-            xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
-            esp_wifi_connect();
-            break;
+        Log_i("SYSTEM_EVENT_STA_DISCONNECTED");
+        xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
+        esp_wifi_connect();
+        break;
 
         default:
-            break;
+        break;
     }
 
     return ESP_OK;
@@ -162,7 +162,7 @@ void qcloud_demo_task(void* parm)
     bool wifi_connected = false;
     Log_i("qcloud_demo_task start");
 
-#if CONFIG_WIFI_CONFIG_ENABLED
+    #if CONFIG_WIFI_CONFIG_ENABLED
     /* to use WiFi config and device binding with Wechat mini program */
     int wifi_config_state;
     //int ret = start_softAP("ESP8266-SAP", "12345678", 0);
@@ -185,22 +185,22 @@ void qcloud_demo_task(void* parm)
         // setup a softAP to upload log to mini program
         start_log_softAP();
     }
-#else
+    #else
     /* init wifi STA and start connection with expected BSS */
     esp_wifi_initialise();
     /* 20 * 1000ms */
     wifi_connected = wait_for_wifi_ready(CONNECTED_BIT, 20, 1000);
-#endif
+    #endif
 
     if (wifi_connected) {
         setup_sntp();
         Log_i("WiFi is ready, to do Qcloud IoT demo");
         Log_d("timestamp now:%d", HAL_Timer_current_sec());
-#ifdef CONFIG_QCLOUD_IOT_EXPLORER_ENABLED
+        #ifdef CONFIG_QCLOUD_IOT_EXPLORER_ENABLED
         qcloud_iot_explorer_demo(CONFIG_DEMO_EXAMPLE_SELECT);
-#else
+        #else
         qcloud_iot_hub_demo();
-#endif
+        #endif
     } else {
         Log_e("WiFi is not ready, please check configuration");
     }
@@ -209,6 +209,15 @@ void qcloud_demo_task(void* parm)
     vTaskDelete(NULL);
 }
 
+void app_control_task(void *parm){
+    Log_i("app control task start");
+    
+    extern void app_control_run(void);
+    app_control_run();
+
+    Log_w("app control task quit");
+    vTaskDelete(NULL);   
+}
 
 void app_main()
 {
@@ -217,10 +226,10 @@ void app_main()
     //init log level
     IOT_Log_Set_Level(eLOG_DEBUG);
     Log_i("FW built time %s %s", __DATE__, __TIME__);
-        
+
     board_init();
 
     xTaskCreate(qcloud_demo_task, "qcloud_demo_task", 8196, NULL, 4, NULL);
-
+    xTaskCreate(app_control_task, "app_control_task", 8196, NULL, 4, NULL);
 }
 
