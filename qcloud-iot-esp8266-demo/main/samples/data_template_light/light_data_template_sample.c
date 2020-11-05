@@ -485,6 +485,7 @@ static void deal_down_stream_user_logic(void *client, ProductDataDefine *light)
 /*example for cycle report, you can delete this for your needs*/
 static void cycle_report(Timer *reportTimer)
 {
+#if 0
     int i;
 
     if (expired(reportTimer)) {
@@ -505,6 +506,7 @@ static void cycle_report(Timer *reportTimer)
             countdown_ms(reportTimer, 10000);
         }
     }
+#endif
 }
 
 /*get local property data, like sensor data*/
@@ -638,7 +640,7 @@ int qcloud_iot_explorer_demo(eDemoType eType)
     // update local property status
     deal_down_stream_user_logic(client, &sg_ProductData);
 
-    rc = enable_ota_task(&sg_devInfo, IOT_Template_Get_MQTT_Client(client), "1.0.0");
+    rc = enable_ota_task(&sg_devInfo, IOT_Template_Get_MQTT_Client(client), "1.0.1");
     if (rc)
         Log_e("Start OTA task failed!");
 

@@ -62,36 +62,53 @@ int16_t phase[3] = {
     0
 };
 
+int left_right_start = 0;//-1:left 0:stop  1:right
+int down_up_start = 0;//-1:down  0:stop 1:right
 void app_control_run(void){
     pwm_init(PWM_PERIOD, duties, 3, pin_num);
     pwm_set_phases(phase);
     pwm_start();
     
-    int left = 1300;
-    int right = 2000;
-    int left_right_middle = (left+right)/2;
-    char left_right_start = 0;
-    int up = 1400;
-    int down = 1900;
-    int up_down_middle = (up+down)/2;
-    char up_down_start = 0;
+    const int left = 1300;
+    const int right = 2000;
+    const int down = 1400;
+    const int up = 1900;
 
     int cur_left_right = 1300;
-    int cur_up_down = 1400;
+    int cur_down_up = 1400;
     while(1<2){
-        /*
-        if(t%3 == 0){
-            duties[1] = duties[1] == 2000 ? 1300:2000;
+        if(left_right_start!=0){
+            cur_left_right+=(left_right_start);
+            if(cur_left_right < left){
+                cur_left_right = left;
+                left_right_start = 0;
+            }else if(cur_left_right > right){
+                cur_left_right = right;
+                left_right_start = 0;
+            }
+            duties[1] = cur_left_right;           
             pwm_set_duty(1,duties[1]);
             pwm_start();
-        }else if(t%5 == 0){
-            duties[0] = duties[0] == 1900 ? 1400:1900;           
+            Log_d("mv left right state:%d [%d]",left_right_start,cur_left_right);
+        }
+
+        if(down_up_start!=0){
+            cur_down_up+=(down_up_start);
+            if(cur_down_up < down){
+                cur_down_up = down;
+                down_up_start = 0;
+            }else if(cur_down_up > up){
+                cur_down_up = up;
+                down_up_start = 0;
+             
+            }
+            duties[0] = cur_down_up;           
             pwm_set_duty(0,duties[0]);
             pwm_start();
+            Log_d("mv down_up state:%d [%d]",down_up_start,cur_down_up);
         }
-        */
-        t++;
-        vTaskDelay(1000 / portTICK_RATE_MS);
+
+        vTaskDelay(10 / portTICK_RATE_MS);
     }
 }
 
@@ -106,25 +123,21 @@ char get_value(const char *jsonRoot){
             Log_d("dp: doumiao:%d",pValue->valueint);
             switch(pValue->valueint){
                 case 0:
-                    duties[0] = duties[0] == 1700 ? 1600:1700;           
-                    pwm_set_duty(0,duties[0]);
-                    pwm_start();
+                    down_up_start = 1;
                     break;//up
                 case 1:
-                    duties[0] = duties[0] == 1900 ? 1400:1900;           
-                    pwm_set_duty(0,duties[0]);
-                    pwm_start();
+                    down_up_start = -1;
                     break;//down
                 case 2:
-                    duties[1] = duties[1] == 2000 ? 1300:2000;
-                    pwm_set_duty(1,duties[1]);
-                    pwm_start();
+                    left_right_start = -1;
                     break;//left
                 case 3:
-                    duties[1] = duties[1] == 2000 ? 1300:2000;
-                    pwm_set_duty(1,duties[1]);
-                    pwm_start();
+                    left_right_start = 1;
                     break;//right
+                case 4:
+                    down_up_start = 0;
+                    left_right_start = 0;
+                    break;
                 default:break;
             }
         }
