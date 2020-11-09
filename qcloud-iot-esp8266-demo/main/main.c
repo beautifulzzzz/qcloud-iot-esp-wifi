@@ -219,6 +219,41 @@ void app_control_task(void *parm){
     vTaskDelete(NULL);   
 }
 
+void app_nvs_task(void *parm){
+    #define WIFI_SSID "wifissid"
+    #define WIFI_PSWD "wifipasswd"
+    
+    if(ESP_OK == nvs_flash_init()){
+        uint8_t wifi_ssid[32] = {0};
+        uint8_t wifi_pswd[16] = {0};
+        size_t len = 0;
+        nvs_handle wifi_handle;
+        while(1){
+#if 0
+            nvs_open("wifi", NVS_READWRITE, &wifi_handle);
+
+            nvs_set_str(wifi_handle, "ssid", WIFI_SSID);
+            nvs_set_str(wifi_handle, "pswd", WIFI_PSWD);
+
+            nvs_commit(wifi_handle);
+            nvs_close(wifi_handle);
+#else
+            nvs_open("wifi", NVS_READONLY, &wifi_handle);
+            len = 32;
+            nvs_get_str(wifi_handle, "ssid", (char *)wifi_ssid, &len);
+            len = 16;
+            nvs_get_str(wifi_handle, "pswd", (char *)wifi_pswd, &len);
+
+            printf("ssid = %s\r\n", wifi_ssid);
+            printf("pswd = %s\r\n", wifi_pswd);
+            nvs_close(wifi_handle);
+#endif
+            HAL_SleepMs(1000000);            
+            vTaskDelete(NULL);
+        }
+    }
+}
+
 void app_main()
 {
     ESP_ERROR_CHECK(nvs_flash_init());
@@ -231,5 +266,6 @@ void app_main()
 
     xTaskCreate(qcloud_demo_task, "qcloud_demo_task", 8196, NULL, 4, NULL);
     xTaskCreate(app_control_task, "app_control_task", 8196, NULL, 4, NULL);
+    xTaskCreate(app_nvs_task, "app_nvs_task", 2048, NULL, 3, NULL);
 }
 
