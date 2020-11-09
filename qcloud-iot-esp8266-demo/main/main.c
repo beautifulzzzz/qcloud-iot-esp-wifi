@@ -74,6 +74,8 @@ static void wifi_connection(void)
             .password = TEST_WIFI_PASSWORD,
         },
     };
+
+    app_nvs_get_ssid_password(&wifi_config.sta.ssid, &wifi_config.sta.password);
     Log_i("Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
 
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
@@ -161,6 +163,7 @@ void qcloud_demo_task(void* parm)
 {
     bool wifi_connected = false;
     Log_i("qcloud_demo_task start");
+    
 
     #if CONFIG_WIFI_CONFIG_ENABLED
     /* to use WiFi config and device binding with Wechat mini program */
@@ -263,6 +266,8 @@ void app_main()
     Log_i("FW built time %s %s", __DATE__, __TIME__);
 
     board_init();
+
+    nvs_flash_init();
 
     xTaskCreate(qcloud_demo_task, "qcloud_demo_task", 8196, NULL, 4, NULL);
     xTaskCreate(app_control_task, "app_control_task", 8196, NULL, 4, NULL);
