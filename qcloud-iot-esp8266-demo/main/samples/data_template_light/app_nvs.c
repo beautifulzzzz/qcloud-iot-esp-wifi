@@ -28,23 +28,25 @@
 #include "cJSON.h"
 #include "nvs.h"
 
-#if 0
+#if 1
 esp_err_t app_nvs_init(void){
    return ESP_OK;
 }
 
 esp_err_t app_nvs_get_ssid_password(uint8_t *_ssid, uint8_t *_password){
-    uint8_t ssid[100];      /**< SSID of target AP*/
-    uint8_t password[100];  /**< password of target AP*/
+ 
+    uint8_t ssid[101];      /**< SSID of target AP*/
+    uint8_t password[101];  /**< password of target AP*/
     size_t ssid_len,password_len;
     nvs_handle wifi_handle;
 
     nvs_open("wifi", NVS_READONLY, &wifi_handle);
-    esp_err_t ret1 = nvs_get_str(wifi_handle, "ssid", (char *)ssid, 100);
-    esp_err_t ret2 = nvs_get_str(wifi_handle, "pswd", (char *)password, 100);
 
+    esp_err_t ret1 = nvs_get_str(wifi_handle, "ssid", (char *)ssid, 64);
+    esp_err_t ret2 = nvs_get_str(wifi_handle, "pswd", (char *)password, 64);
+   return 0;
     ssid_len = ssid[0];
-    password_len = password_len[0];
+    password_len = password[0];
     printf("ssid = %s\r\n", &ssid[1]);//[0]=len
     printf("pswd = %s\r\n", &password[1]);//[0]=len
     nvs_close(wifi_handle);   
@@ -59,7 +61,7 @@ esp_err_t app_nvs_get_ssid_password(uint8_t *_ssid, uint8_t *_password){
     return (ret1 && ret2);
 }
 
-esp_err_t app_nvs_get_ssid_password(uint8_t *_ssid, uint8_t *_password){
+esp_err_t app_nvs_set_ssid_password(uint8_t *_ssid, uint8_t *_password){
     uint8_t ssid[100];      /**< SSID of target AP*/
     uint8_t password[100];  /**< password of target AP*/
     size_t ssid_len,password_len;
