@@ -25,6 +25,8 @@
 
 
 #include "driver/pwm.h"
+#include "driver/gpio.h"
+
 #include "cJSON.h"
 
 
@@ -35,6 +37,8 @@
 #define PWM_1_OUT_IO_NUM    14
 #define PWM_2_OUT_IO_NUM    12
 #define PWM_3_OUT_IO_NUM    2
+#define LED_IO_NUM          13 //D7 
+#define GPIO_OUTPUT_PIN_SEL (1ULL<<LED_IO_NUM)
 
 // PWM period 10us(100Khz), same as depth
 #define PWM_PERIOD    (20000)
@@ -65,6 +69,21 @@ int16_t phase[3] = {
 int left_right_start = 0;//-1:left 0:stop  1:right
 int down_up_start = 0;//-1:down  0:stop 1:right
 void app_control_run(void){
+    gpio_config_t io_conf;
+    //disable interrupt
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    //set as output mode
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    //bit mask of the pins that you want to set,e.g.GPIO15/16
+    io_conf.pin_bit_mask = GPIO_OUTPUT_PIN_SEL;
+    //disable pull-down mode
+    io_conf.pull_down_en = 0;
+    //disable pull-up mode
+    io_conf.pull_up_en = 0;
+    //configure GPIO with the given settings
+    gpio_config(&io_conf);
+
+
     pwm_init(PWM_PERIOD, duties, 3, pin_num);
     pwm_set_phases(phase);
     pwm_start();
@@ -139,6 +158,15 @@ char get_value(const char *jsonRoot){
                     left_right_start = 0;
                     break;
                 default:break;
+            }
+        }
+        pValue =  cJSON_GetObjectItem(pParams, "onoff");
+        if(pValue != NULL){
+            Log_d("dp: onoff:%d",pValue->valueint);
+            if(pValue->valueint == 1){
+                gpio_set_level(LED_IO_NUM, 1);
+            }else{
+                gpio_set_level(LED_IO_NUM, 0);
             }
         }
     }    
