@@ -698,6 +698,7 @@ end_of_task:
     vTaskDelete(NULL);
 }
 
+#if 0
 static void softAP_mqtt_task(void *pvParameters)
 {
     uint8_t  led_state    = 0;
@@ -755,7 +756,9 @@ static void softAP_mqtt_task(void *pvParameters)
     Log_i("softAP mqtt task quit");
     vTaskDelete(NULL);
 }
+#endif
 
+#if 0
 int start_softAP(const char *ssid, const char *psw, uint8_t ch)
 {
     init_dev_log_queue();
@@ -842,7 +845,7 @@ void stop_softAP(void)
     set_wifi_led_state(WIFI_LED_OFF);
     wifi_stop_softap();
 }
-
+#endif
 static void smartconfig_mqtt_task(void *parm)
 {
     uint32_t wait_count = WIFI_CONFIG_WAIT_TIME_MS / SMART_CONFIG_BLINK_TIME_MS;
@@ -1150,6 +1153,7 @@ end_of_task:
 }
 #endif
 
+#if 0
 int start_log_softAP(void)
 {
 #ifdef WIFI_LOG_UPLOAD
@@ -1188,5 +1192,6 @@ err_exit:
 #endif
     return QCLOUD_ERR_FAILURE;
 }
+#endif
 //============================ WiFi connect/softAP/smartconfig end ===========================//
 

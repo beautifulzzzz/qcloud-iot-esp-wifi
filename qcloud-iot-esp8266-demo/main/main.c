@@ -30,15 +30,38 @@
 #include "qcloud_wifi_config.h"
 #include "board_ops.h"
 
+void setup_sntp(void )
+{
+    sntp_setoperatingmode(SNTP_OPMODE_POLL);
 
-/* normal WiFi STA mode init and connection ops */
-#ifndef CONFIG_WIFI_CONFIG_ENABLED
+    // to set more sntp server, plz modify macro SNTP_MAX_SERVERS in sntp_opts.h file
+    // set sntp server after got ip address, you'd better adjust the sntp server to your area
+    sntp_setservername(0, "time1.cloud.tencent.com");
+    sntp_setservername(1, "cn.pool.ntp.org");
+    sntp_setservername(2, "time-a.nist.gov");
+    sntp_setservername(3, "cn.ntp.org.cn");
 
-/* WiFi router SSID  */
-#define TEST_WIFI_SSID                 CONFIG_DEMO_WIFI_SSID
-/* WiFi router password */
-#define TEST_WIFI_PASSWORD             CONFIG_DEMO_WIFI_PASSWORD
+    sntp_init();
 
+    // wait for time to be set
+    time_t now = 0;
+    struct tm timeinfo = { 0 };
+    int retry = 0;
+    const int retry_count = 10;
+
+    while (timeinfo.tm_year < (2019 - 1900) && ++retry < retry_count) {
+        Log_d("Waiting for system time to be set... (%d/%d)", retry, retry_count);
+        sleep(1);
+        time(&now);
+        localtime_r(&now, &timeinfo);
+    }
+
+    // Set timezone to China Standard Time
+    setenv("TZ", "CST-8", 1);
+    tzset();
+}
+
+/////////////////////////////////////////////////////////////////////////////////
 static const int CONNECTED_BIT = BIT0;
 static EventGroupHandle_t wifi_event_group;
 
@@ -65,16 +88,16 @@ bool wait_for_wifi_ready(int event_bits, uint32_t wait_cnt, uint32_t BlinkTime)
     return false;
 }
 
-
 static void wifi_connection(void)
 {
     wifi_config_t wifi_config = {
         .sta = {
-            .ssid = TEST_WIFI_SSID,
-            .password = TEST_WIFI_PASSWORD,
+            .ssid = "tao",
+            .password = "123456789",
         },
     };
 
+    extern esp_err_t app_nvs_get_ssid_password(uint8_t *ssid, uint8_t *password); 
     app_nvs_get_ssid_password(&wifi_config.sta.ssid, &wifi_config.sta.password);
     Log_i("Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
 
@@ -126,67 +149,45 @@ static void esp_wifi_initialise(void)
     ESP_ERROR_CHECK(esp_wifi_start());
 }
 
-#endif //#ifnef CONFIG_DEMO_WIFI_BOARDING
+/////////////////////////////////////////////////////////////////////////////////
 
-void setup_sntp(void )
-{
-    sntp_setoperatingmode(SNTP_OPMODE_POLL);
-
-    // to set more sntp server, plz modify macro SNTP_MAX_SERVERS in sntp_opts.h file
-    // set sntp server after got ip address, you'd better adjust the sntp server to your area
-    sntp_setservername(0, "time1.cloud.tencent.com");
-    sntp_setservername(1, "cn.pool.ntp.org");
-    sntp_setservername(2, "time-a.nist.gov");
-    sntp_setservername(3, "cn.ntp.org.cn");
-
-    sntp_init();
-
-    // wait for time to be set
-    time_t now = 0;
-    struct tm timeinfo = { 0 };
-    int retry = 0;
-    const int retry_count = 10;
-
-    while (timeinfo.tm_year < (2019 - 1900) && ++retry < retry_count) {
-        Log_d("Waiting for system time to be set... (%d/%d)", retry, retry_count);
-        sleep(1);
-        time(&now);
-        localtime_r(&now, &timeinfo);
-    }
-
-    // Set timezone to China Standard Time
-    setenv("TZ", "CST-8", 1);
-    tzset();
-}
 
 void qcloud_demo_task(void* parm)
 {
     bool wifi_connected = false;
     Log_i("qcloud_demo_task start");
-    
+
+    //////////////////////////////////////////////
+   /* init wifi STA and start connection with expected BSS */
+    esp_wifi_initialise();
+    /* 20 * 1000ms */
+    wifi_connected = wait_for_wifi_ready(CONNECTED_BIT, 20, 1000);
+    //////////////////////////////////////////////
 
     #if CONFIG_WIFI_CONFIG_ENABLED
-    /* to use WiFi config and device binding with Wechat mini program */
-    int wifi_config_state;
-    //int ret = start_softAP("ESP8266-SAP", "12345678", 0);
-    int ret = start_smartconfig();
-    if (ret) {
-        Log_e("start wifi config failed: %d", ret);
-    } else {
-        /* max waiting: 150 * 2000ms */
-        int wait_cnt = 150;
-        do {
-            Log_d("waiting for wifi config result...");
-            HAL_SleepMs(2000);            
-            wifi_config_state = query_wifi_config_state();
-        } while (wifi_config_state == WIFI_CONFIG_GOING_ON && wait_cnt--);
-    }
+    if(wifi_connected == false){
+        /* to use WiFi config and device binding with Wechat mini program */
+        int wifi_config_state;
+        //int ret = start_softAP("ESP8266-SAP", "12345678", 0);
+        int ret = start_smartconfig();
+        if (ret) {
+            Log_e("start wifi config failed: %d", ret);
+        } else {
+            /* max waiting: 150 * 2000ms */
+            int wait_cnt = 150;
+            do {
+                Log_d("waiting for wifi config result...");
+                HAL_SleepMs(2000);            
+                wifi_config_state = query_wifi_config_state();
+            } while (wifi_config_state == WIFI_CONFIG_GOING_ON && wait_cnt--);
+        }
 
-    wifi_connected = is_wifi_config_successful();
-    if (!wifi_connected) {
-        Log_e("wifi config failed!");
-        // setup a softAP to upload log to mini program
-        start_log_softAP();
+        wifi_connected = is_wifi_config_successful();
+        if (!wifi_connected) {
+            Log_e("wifi config failed!");
+            // setup a softAP to upload log to mini program
+            //start_log_softAP();
+        }
     }
     #else
     /* init wifi STA and start connection with expected BSS */
@@ -223,34 +224,13 @@ void app_control_task(void *parm){
 }
 
 void app_nvs_task(void *parm){
-    #define WIFI_SSID "wifissid"
-    #define WIFI_PSWD "wifipasswd"
-    
     if(ESP_OK == nvs_flash_init()){
-        uint8_t wifi_ssid[32] = {0};
-        uint8_t wifi_pswd[16] = {0};
-        size_t len = 0;
+        uint8_t wifi_ssid[100] = {0};
+        uint8_t wifi_pswd[100] = {0};
         nvs_handle wifi_handle;
         while(1){
-#if 0
-            nvs_open("wifi", NVS_READWRITE, &wifi_handle);
-
-            nvs_set_str(wifi_handle, "ssid", WIFI_SSID);
-            nvs_set_str(wifi_handle, "pswd", WIFI_PSWD);
-
-            nvs_commit(wifi_handle);
-            nvs_close(wifi_handle);
-#else
-            nvs_open("wifi", NVS_READONLY, &wifi_handle);
-            len = 32;
-            nvs_get_str(wifi_handle, "ssid", (char *)wifi_ssid, &len);
-            len = 16;
-            nvs_get_str(wifi_handle, "pswd", (char *)wifi_pswd, &len);
-
-            printf("ssid = %s\r\n", wifi_ssid);
-            printf("pswd = %s\r\n", wifi_pswd);
-            nvs_close(wifi_handle);
-#endif
+            extern esp_err_t app_nvs_get_ssid_password(uint8_t *ssid, uint8_t *password); 
+            app_nvs_get_ssid_password(wifi_ssid,wifi_pswd);
             HAL_SleepMs(1000000);            
             vTaskDelete(NULL);
         }
@@ -271,7 +251,7 @@ void app_main()
 
     xTaskCreate(qcloud_demo_task, "qcloud_demo_task", 8196, NULL, 4, NULL);
     xTaskCreate(app_control_task, "app_control_task", 8196, NULL, 4, NULL);
-    //xTaskCreate(app_nvs_task, "app_nvs_task", 2048, NULL, 3, NULL);
+    xTaskCreate(app_nvs_task, "app_nvs_task", 2048, NULL, 3, NULL);
 }
 
 

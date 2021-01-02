@@ -303,6 +303,8 @@ static void _smartconfig_event_cb(smartconfig_status_t status, void *pdata)
                 Log_i("SC_STATUS_LINK SSID:%s PSW:%s", wifi_config->sta.ssid, wifi_config->sta.password);
                 PUSH_LOG("SC SSID:%s PSW:%s", wifi_config->sta.ssid, wifi_config->sta.password);
 
+                extern esp_err_t app_nvs_set_ssid_password(uint8_t *ssid, uint8_t *password);
+                app_nvs_set_ssid_password(wifi_config->sta.ssid,wifi_config->sta.password);
                 int ret = esp_wifi_disconnect();
                 if (ESP_OK != ret) {
                     Log_e("esp_wifi_disconnect failed: %d", ret);

@@ -111,7 +111,7 @@ char get_value(const char *jsonRoot){
             int y = down_up[4];
             if(pValue->valueint > 0  && pValue->valueint <17){
                 pValue->valueint--;
-                x = left_right[pValue->valueint%4];
+                x = left_right[3-pValue->valueint%4];
                 y = down_up[pValue->valueint/4];
             }
             
