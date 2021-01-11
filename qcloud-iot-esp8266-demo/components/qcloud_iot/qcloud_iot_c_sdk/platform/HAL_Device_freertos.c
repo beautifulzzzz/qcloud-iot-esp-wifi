@@ -38,10 +38,10 @@
 static char sg_product_id[MAX_SIZE_OF_PRODUCT_ID + 1] = "XLKMMZOLK1";
 
 /* device name */
-static char sg_device_name[MAX_SIZE_OF_DEVICE_NAME + 1] = "00000003";
+static char sg_device_name[MAX_SIZE_OF_DEVICE_NAME + 1] = "00000004";
 
 /* device secret of PSK device */
-static char sg_device_secret[MAX_SIZE_OF_DEVICE_SECRET + 1] = "eLhF8OmC+pHbRxrWO7LsXA==";
+static char sg_device_secret[MAX_SIZE_OF_DEVICE_SECRET + 1] = "FpPj/Y9heN/IRFzox+0kVQ==";
 
 /* region */
 static char sg_region[MAX_SIZE_OF_REGION + 1] = "china";

@@ -31,7 +31,7 @@
 #define QCLOUD_IOT_MQTT_COMMAND_TIMEOUT (5 * 1000)
 
 /* default MQTT keep alive interval (unit: ms) */
-#define QCLOUD_IOT_MQTT_KEEP_ALIVE_INTERNAL (240 * 1000)
+#define QCLOUD_IOT_MQTT_KEEP_ALIVE_INTERNAL (24 * 1000) //default 4min, here 0.4min
 
 /* default MQTT Tx buffer size, MAX: 16*1024 */
 #define QCLOUD_IOT_MQTT_TX_BUF_LEN (2048)

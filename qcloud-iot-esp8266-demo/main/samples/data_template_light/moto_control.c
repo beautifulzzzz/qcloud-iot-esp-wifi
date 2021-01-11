@@ -138,6 +138,16 @@ char get_value(const char *jsonRoot){
     return 1;
 }
 
+void app_led_toggle(){
+    static uint8_t onoff = 0;
+    if(onoff){
+        onoff = 0;
+        gpio_set_level(LED_IO_NUM,onoff);
+    }else{
+        onoff = 1;
+        gpio_set_level(LED_IO_NUM,onoff);
+    }
+}
 
 void app_dp_report(char *str){
     Log_d("str:%s", str);

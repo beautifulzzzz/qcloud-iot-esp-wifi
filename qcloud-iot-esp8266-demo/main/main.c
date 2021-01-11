@@ -154,18 +154,32 @@ static void esp_wifi_initialise(void)
 
 void qcloud_demo_task(void* parm)
 {
+    extern esp_err_t app_nvs_get_reset(uint8_t *reset);
+    extern esp_err_t app_nvs_set_reset(uint8_t *reset);
+
     bool wifi_connected = false;
     Log_i("qcloud_demo_task start");
 
     //////////////////////////////////////////////
-   /* init wifi STA and start connection with expected BSS */
-    esp_wifi_initialise();
-    /* 20 * 1000ms */
-    wifi_connected = wait_for_wifi_ready(CONNECTED_BIT, 20, 1000);
-    //////////////////////////////////////////////
+    /* init wifi STA and start connection with expected BSS */
+    uint8_t reset;
+    uint8_t ok = 0;
+    if(ESP_OK == app_nvs_get_reset(&reset)){
+        if(reset < 3){
+            ok = 1;
+            reset++;
+            app_nvs_set_reset(&reset);
 
-    #if CONFIG_WIFI_CONFIG_ENABLED
-    if(wifi_connected == false){
+            esp_wifi_initialise();
+            /* 30 * 1000ms */
+            wifi_connected = wait_for_wifi_ready(CONNECTED_BIT, 30, 1000);
+        }
+    }
+
+    if(ok == 0){
+        reset = 0;
+        app_nvs_set_reset(&reset);
+
         /* to use WiFi config and device binding with Wechat mini program */
         int wifi_config_state;
         //int ret = start_softAP("ESP8266-SAP", "12345678", 0);
@@ -173,9 +187,11 @@ void qcloud_demo_task(void* parm)
         if (ret) {
             Log_e("start wifi config failed: %d", ret);
         } else {
+            extern void app_led_toggle();
             /* max waiting: 150 * 2000ms */
             int wait_cnt = 150;
             do {
+                app_led_toggle();
                 Log_d("waiting for wifi config result...");
                 HAL_SleepMs(2000);            
                 wifi_config_state = query_wifi_config_state();
@@ -189,12 +205,7 @@ void qcloud_demo_task(void* parm)
             //start_log_softAP();
         }
     }
-    #else
-    /* init wifi STA and start connection with expected BSS */
-    esp_wifi_initialise();
-    /* 20 * 1000ms */
-    wifi_connected = wait_for_wifi_ready(CONNECTED_BIT, 20, 1000);
-    #endif
+
 
     if (wifi_connected) {
         setup_sntp();

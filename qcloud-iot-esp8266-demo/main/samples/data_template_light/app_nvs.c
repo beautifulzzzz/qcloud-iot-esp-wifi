@@ -64,3 +64,35 @@ esp_err_t app_nvs_set_ssid_password(uint8_t *ssid, uint8_t *password){
 }
 
 
+esp_err_t app_nvs_get_reset(uint8_t *reset){
+    nvs_handle reset_handle;
+    size_t len_reset = 10;
+
+    nvs_open("reset", NVS_READONLY, &reset_handle);
+
+    esp_err_t ret1 = nvs_get_str(reset_handle, "reset", (char *)reset, &len_reset);
+
+    nvs_close(reset_handle);   
+
+    if(ret1 == ESP_OK){
+        Log_i("get_reset = %d\r\n", *reset);
+        return ESP_OK;
+    }
+
+    return ESP_FAIL;
+}
+
+
+esp_err_t app_nvs_set_reset(uint8_t *reset){
+    nvs_handle reset_handle;
+
+    nvs_open("reset", NVS_READWRITE, &reset_handle);
+    esp_err_t ret1 = nvs_set_str(reset_handle, "reset", (char *)reset);
+
+    Log_i("save_reset = %d\r\n", *reset);
+    nvs_close(reset_handle);   
+
+    return ret1;
+}
+
+
