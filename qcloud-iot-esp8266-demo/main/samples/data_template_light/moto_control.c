@@ -54,18 +54,18 @@ const uint32_t pin_num[3] = {
 
 // dutys table, (duty/PERIOD)*depth
 uint32_t duties[3] = {
-    1250,//down_up
+    1500,//down_up
     1500,//left_right
     1600
 };
 
 const int left = 1200;//600
 const int right = 1800;
-const int down = 900;//350
-const int up = 1250;
+const int down = 1200;//300
+const int up = 1500;
 
 int left_right[5] = {1200,1400,1600,1800,1500};
-int down_up[5] = {1250,1134,1017,900,1250};
+int down_up[5] = {1500,1400,1300,1200,1500};
 
 // phase table, (phase/180)*depth
 int16_t phase[3] = {
@@ -147,6 +147,10 @@ void app_led_toggle(){
         onoff = 1;
         gpio_set_level(LED_IO_NUM,onoff);
     }
+}
+
+void app_led_set(uint8_t onoff){
+    gpio_set_level(LED_IO_NUM,onoff);
 }
 
 void app_dp_report(char *str){

@@ -177,9 +177,6 @@ void qcloud_demo_task(void* parm)
     }
 
     if(ok == 0){
-        reset = 0;
-        app_nvs_set_reset(&reset);
-
         /* to use WiFi config and device binding with Wechat mini program */
         int wifi_config_state;
         //int ret = start_softAP("ESP8266-SAP", "12345678", 0);
@@ -197,7 +194,9 @@ void qcloud_demo_task(void* parm)
                 wifi_config_state = query_wifi_config_state();
             } while (wifi_config_state == WIFI_CONFIG_GOING_ON && wait_cnt--);
         }
-
+    
+        extern void app_led_set(uint8_t onoff);
+        app_led_set(1);
         wifi_connected = is_wifi_config_successful();
         if (!wifi_connected) {
             Log_e("wifi config failed!");
@@ -235,14 +234,21 @@ void app_control_task(void *parm){
 }
 
 void app_nvs_task(void *parm){
+    extern esp_err_t app_nvs_get_reset(uint8_t *reset);
+    extern esp_err_t app_nvs_set_reset(uint8_t *reset);
+
     if(ESP_OK == nvs_flash_init()){
         uint8_t wifi_ssid[100] = {0};
         uint8_t wifi_pswd[100] = {0};
+        uint8_t reset = 0;
         nvs_handle wifi_handle;
         while(1){
             extern esp_err_t app_nvs_get_ssid_password(uint8_t *ssid, uint8_t *password); 
             app_nvs_get_ssid_password(wifi_ssid,wifi_pswd);
-            HAL_SleepMs(1000000);            
+            HAL_SleepMs(10000);//10S            
+
+            app_nvs_set_reset(&reset);
+
             vTaskDelete(NULL);
         }
     }
