@@ -36,7 +36,7 @@
 //////////////////////////////////////////////////////////////////////
 #define PWM_1_OUT_IO_NUM    14 //D5
 #define PWM_2_OUT_IO_NUM    12 //D6
-#define PWM_3_OUT_IO_NUM    2
+//#define PWM_3_OUT_IO_NUM    2
 #define LED_IO_NUM          13 //D7 
 #define GPIO_OUTPUT_PIN_SEL (1ULL<<LED_IO_NUM)
 
@@ -46,17 +46,16 @@
 static const char *TAG = "pwm_example";
 
 // pwm pin number
-const uint32_t pin_num[3] = {
+const uint32_t pin_num[2] = {
     PWM_1_OUT_IO_NUM,
     PWM_2_OUT_IO_NUM,
-    PWM_3_OUT_IO_NUM,
+//    PWM_3_OUT_IO_NUM,
 };
 
 // dutys table, (duty/PERIOD)*depth
-uint32_t duties[3] = {
+uint32_t duties[2] = {
     1500,//down_up
-    1500,//left_right
-    1600
+    1500//left_right
 };
 
 const int left = 1200;//600
@@ -68,8 +67,7 @@ int left_right[5] = {1200,1400,1600,1800,1500};
 int down_up[5] = {1500,1400,1300,1200,1500};
 
 // phase table, (phase/180)*depth
-int16_t phase[3] = {
-    0,
+int16_t phase[2] = {
     0,
     0
 };
@@ -92,7 +90,7 @@ void app_control_run(void){
     gpio_set_level(LED_IO_NUM, 1);
 
 
-    pwm_init(PWM_PERIOD, duties, 3, pin_num);
+    pwm_init(PWM_PERIOD, duties, 2, pin_num);
     pwm_set_phases(phase);
     pwm_start();
 }

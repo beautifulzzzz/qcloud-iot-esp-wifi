@@ -177,6 +177,9 @@ void qcloud_demo_task(void* parm)
     }
 
     if(ok == 0){
+        reset = 0;
+        app_nvs_set_reset(&reset);
+
         /* to use WiFi config and device binding with Wechat mini program */
         int wifi_config_state;
         //int ret = start_softAP("ESP8266-SAP", "12345678", 0);
@@ -254,6 +257,8 @@ void app_nvs_task(void *parm){
     }
 }
 
+extern void gpio_task_init(void);
+extern void button_task_run(void *arg);
 void app_main()
 {
     ESP_ERROR_CHECK(nvs_flash_init());
@@ -262,13 +267,15 @@ void app_main()
     IOT_Log_Set_Level(eLOG_DEBUG);
     Log_i("FW built time %s %s", __DATE__, __TIME__);
 
-    board_init();
+//    board_init();
 
     nvs_flash_init();
+    gpio_task_init();
 
     xTaskCreate(qcloud_demo_task, "qcloud_demo_task", 8196, NULL, 4, NULL);
     xTaskCreate(app_control_task, "app_control_task", 8196, NULL, 4, NULL);
     xTaskCreate(app_nvs_task, "app_nvs_task", 2048, NULL, 3, NULL);
+    xTaskCreate(button_task_run, "button_task", 2048, NULL, 5, NULL);
 }
 
 
